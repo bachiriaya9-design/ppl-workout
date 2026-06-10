@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>PPL Workout</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { background: #0a0a0a; color: #f0f0f0; font-family: -apple-system, 'Inter', system-ui, sans-serif; min-height: 100vh; padding-bottom: 80px; }
+  button { font-family: inherit; }
+
+  /* Header */
+  #header { padding: 40px 20px 0; border-bottom: 1px solid #181818; }
+  #header .label { font-size: 10px; letter-spacing: 0.2em; color: #444; margin-bottom: 4px; text-transform: uppercase; }
+  #header h1 { font-size: 24px; font-weight: 800; margin-bottom: 18px; letter-spacing: -0.5px; }
+
+  /* Tabs */
+  #tabs { display: flex; gap: 3px; overflow-x: auto; padding-bottom: 0; scrollbar-width: none; }
+  #tabs::-webkit-scrollbar { display: none; }
+  .tab-btn { flex: 0 0 auto; padding: 8px 11px; border-bottom: none; border-radius: 8px 8px 0 0; cursor: pointer; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; transition: all 0.15s; background: transparent; }
+  .tab-day { font-size: 8px; opacity: 0.75; margin-bottom: 2px; }
+  .tab-done-mark { font-size: 9px; margin-top: 1px; }
+
+  /* Content */
+  #content { padding: 0 20px; }
+  .day-header { padding-left: 14px; margin: 22px 0 14px; }
+  .day-theme { font-size: 10px; letter-spacing: 0.15em; font-weight: 700; margin-bottom: 3px; text-transform: uppercase; }
+  .day-muscles { font-size: 12px; color: #555; }
+
+  /* View toggle */
+  .view-toggle { display: flex; gap: 6px; margin-bottom: 18px; }
+  .view-btn { padding: 7px 18px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+
+  /* Progress */
+  .progress-wrap { margin-bottom: 18px; }
+  .progress-top { display: flex; justify-content: space-between; font-size: 11px; color: #555; margin-bottom: 5px; }
+  .progress-bar-bg { height: 3px; background: #1a1a1a; border-radius: 2px; }
+  .progress-bar { height: 100%; border-radius: 2px; transition: width 0.3s; }
+
+  /* Exercise cards */
+  .ex-list { display: flex; flex-direction: column; gap: 8px; }
+  .ex-card { background: #111; border-radius: 12px; padding: 14px; transition: opacity 0.2s; }
+  .ex-inner { display: flex; gap: 10px; align-items: flex-start; }
+  .check-btn { width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 10px; font-weight: 700; color: #fff; transition: all 0.15s; }
+  .ex-body { flex: 1; min-width: 0; }
+  .ex-name { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+  .ex-sets { font-size: 11px; font-weight: 600; margin-bottom: 3px; }
+  .ex-target { font-size: 11px; color: #505050; margin-bottom: 2px; }
+  .ex-note { font-size: 10px; color: #303030; font-style: italic; margin-bottom: 10px; }
+  .ex-bottom { display: flex; align-items: center; gap: 8px; }
+  .weight-label { font-size: 10px; color: #3a3a3a; letter-spacing: 0.05em; }
+  .weight-btn { border-radius: 6px; padding: 4px 12px; font-size: 12px; cursor: pointer; min-width: 56px; transition: all 0.15s; }
+  .weight-input { width: 64px; background: #1a1a1a; border-radius: 6px; color: #fff; padding: 4px 8px; font-size: 12px; text-align: center; }
+  .rest-badge { margin-left: auto; display: flex; align-items: center; gap: 5px; }
+  .rest-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .rest-label { font-size: 10px; color: #3a3a3a; }
+
+  /* Warmup */
+  .warmup-list { display: flex; flex-direction: column; gap: 8px; }
+  .warmup-title { font-size: 11px; color: #444; margin-bottom: 4px; letter-spacing: 0.1em; text-transform: uppercase; }
+  .warmup-item { background: #111; border: 1px solid #1e1e1e; border-radius: 10px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; }
+  .warmup-num { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; flex-shrink: 0; }
+  .warmup-text { font-size: 14px; }
+  .start-btn { margin-top: 10px; padding: 14px; border-radius: 12px; color: #fff; border: none; cursor: pointer; font-size: 14px; font-weight: 700; width: 100%; }
+
+  /* Info panels */
+  .panel { background: #111; border: 1px solid #1a1a1a; border-radius: 12px; padding: 14px; margin-top: 10px; }
+  .panel-title { font-size: 10px; letter-spacing: 0.15em; color: #383838; margin-bottom: 10px; text-transform: uppercase; }
+  .rest-guide { display: flex; gap: 20px; flex-wrap: wrap; }
+  .rg-item { display: flex; align-items: center; gap: 7px; }
+  .rg-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .rg-time { font-size: 12px; color: #ccc; font-weight: 600; }
+  .rg-type { font-size: 10px; color: #484848; }
+  .week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+  .week-day { text-align: center; }
+  .week-day-label { font-size: 8px; color: #383838; margin-bottom: 3px; }
+  .week-day-sub { font-size: 7px; font-weight: 700; border-radius: 4px; padding: 3px 1px; }
+
+  /* Rest overlay */
+  #rest-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.93); z-index: 200; display: none; flex-direction: column; align-items: center; justify-content: center; }
+  #rest-overlay.active { display: flex; }
+  .rest-title { font-size: 11px; letter-spacing: 0.2em; color: #555; margin-bottom: 6px; text-transform: uppercase; }
+  .rest-exname { font-size: 13px; color: #555; margin-bottom: 36px; }
+  .ring-wrap { position: relative; width: 140px; height: 140px; margin-bottom: 32px; }
+  .ring-wrap svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+  .ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .ring-num { font-size: 42px; font-weight: 800; letter-spacing: -2px; line-height: 1; }
+  .ring-sec { font-size: 11px; color: #555; margin-top: 2px; }
+  .skip-btn { background: transparent; border: 1px solid #2a2a2a; color: #555; padding: 12px 40px; border-radius: 8px; cursor: pointer; font-size: 13px; letter-spacing: 0.08em; font-weight: 600; margin-top: 32px; }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="label">Dumbbell Only</div>
+  <h1>Push · Pull · Legs</h1>
+  <div id="tabs"></div>
+</div>
+
+<div id="content"></div>
+
+<!-- Rest overlay -->
+<div id="rest-overlay">
+  <div class="rest-title">Rest</div>
+  <div class="rest-exname" id="rest-exname"></div>
+  <div class="ring-wrap">
+    <svg width="140" height="140" id="ring-svg">
+      <circle cx="70" cy="70" r="58" fill="none" stroke="#1c1c1c" stroke-width="7"/>
+      <circle cx="70" cy="70" r="58" fill="none" id="ring-arc" stroke-width="7" stroke-linecap="round"
+        stroke-dasharray="364.4" stroke-dashoffset="0"/>
+    </svg>
+    <div class="ring-center">
+      <div class="ring-num" id="rest-num">0</div>
+      <div class="ring-sec">seconds</div>
+    </div>
+  </div>
+  <button class="skip-btn" onclick="skipRest()">Skip Rest</button>
+</div>
+
+<script>
+const CIRCUM = 2 * Math.PI * 58;
+
+const program = {
+  push1: {
+    label:"PUSH A", theme:"Chest dominant", color:"#E84B2E",
+    muscles:"Chest · Front Delt · Lateral Delt · Triceps",
+    warmup:["Arm circles × 20","Band pull-apart × 15","Wall slides × 10","Light DB press × 15 (50% weight)"],
+    exercises:[
+      {name:"Flat DB Press",sets:4,reps:"10",restSec:105,type:"compound",target:"Pec major (sternal head)",note:"Full stretch at bottom"},
+      {name:"Incline DB Press",sets:4,reps:"10",restSec:105,type:"compound",target:"Pec major (clavicular head)",note:"30–45° bench angle"},
+      {name:"DB Flye",sets:3,reps:"12",restSec:60,type:"isolation",target:"Pec minor, outer chest",note:"Slight bend in elbows, wide arc"},
+      {name:"DB Pullover",sets:3,reps:"12",restSec:60,type:"isolation",target:"Serratus anterior, pec, long head tricep",note:"Rib cage stretch at top"},
+      {name:"Lateral Raise",sets:4,reps:"15",restSec:60,type:"isolation",target:"Deltoid (lateral head)",note:"Lead with elbow, slight forward lean"},
+      {name:"Front Raise",sets:3,reps:"12",restSec:60,type:"isolation",target:"Deltoid (anterior head)",note:"Alternating, controlled descent"},
+      {name:"Overhead Tricep Extension",sets:3,reps:"12",restSec:60,type:"isolation",target:"Tricep long head",note:"Full stretch overhead"},
+      {name:"Tricep Kickback",sets:3,reps:"12",restSec:45,type:"isolation",target:"Tricep lateral + medial head",note:"Upper arm parallel to floor"},
+    ]
+  },
+  pull1: {
+    label:"PULL A", theme:"Back dominant", color:"#2E6BE8",
+    muscles:"Lats · Rhomboids · Traps · Rear Delt · Biceps · Brachialis",
+    warmup:["Cat-cow × 10","Dead hang 20s","Band face-pull × 15","Light row × 12 (50% weight)"],
+    exercises:[
+      {name:"DB Bent-Over Row",sets:4,reps:"10",restSec:105,type:"compound",target:"Lats, rhomboids, mid traps",note:"Elbows close to body for lat focus"},
+      {name:"DB Single-Arm Row",sets:4,reps:"10",restSec:105,type:"compound",target:"Lat, teres major",note:"Full stretch at bottom, row to hip"},
+      {name:"DB Incline Row (face down)",sets:3,reps:"12",restSec:75,type:"compound",target:"Mid traps, rhomboids",note:"Chest on incline bench, elbows wide"},
+      {name:"Rear Delt Fly",sets:4,reps:"15",restSec:60,type:"isolation",target:"Posterior deltoid",note:"Bent over 90°, lead with elbows"},
+      {name:"Rear Delt External Rotation",sets:3,reps:"15",restSec:60,type:"isolation",target:"Infraspinatus, teres minor, rear delt",note:"Goalpost arms, rotate up slowly"},
+      {name:"DB Shrug",sets:3,reps:"15",restSec:60,type:"isolation",target:"Upper trapezius",note:"Hold at top 1 second"},
+      {name:"Bicep Curl",sets:4,reps:"12",restSec:60,type:"isolation",target:"Bicep (both heads)",note:"Supinate at top, full extension"},
+      {name:"Hammer Curl",sets:3,reps:"12",restSec:60,type:"isolation",target:"Brachialis, brachioradialis",note:"Neutral grip throughout"},
+      {name:"Reverse Curl",sets:3,reps:"12",restSec:45,type:"isolation",target:"Brachioradialis, forearm extensors",note:"Overhand grip, controlled"},
+    ]
+  },
+  legs1: {
+    label:"LEGS A", theme:"Quad & glute dominant", color:"#2EB87A",
+    muscles:"Quads · Glutes · Adductors · Calves · Tibialis",
+    warmup:["Hip circles × 15 each","Bodyweight squat × 20","Leg swing × 10 each","Glute bridge × 15"],
+    exercises:[
+      {name:"DB Goblet Squat",sets:4,reps:"12",restSec:105,type:"compound",target:"Quads (all 4 heads), glute max",note:"Deep squat, knees track toes"},
+      {name:"DB Bulgarian Split Squat",sets:4,reps:"10",restSec:120,type:"compound",target:"Vastus lateralis, glute max, rectus femoris",note:"Rear foot elevated, long stride"},
+      {name:"DB Sumo Squat",sets:3,reps:"12",restSec:90,type:"compound",target:"Adductors, glute med/min, VMO",note:"Wide stance, toes out 45°"},
+      {name:"DB Reverse Lunge",sets:3,reps:"10",restSec:75,type:"compound",target:"Rectus femoris, glutes",note:"Step back, front shin vertical"},
+      {name:"DB Romanian Deadlift",sets:4,reps:"10",restSec:105,type:"compound",target:"Hamstrings, glute max",note:"Hinge at hips, soft knee"},
+      {name:"DB Hip Thrust (floor)",sets:4,reps:"12",restSec:75,type:"compound",target:"Gluteus maximus",note:"Upper back on bench, full hip extension"},
+      {name:"Standing Calf Raise (DB)",sets:4,reps:"20",restSec:45,type:"calf",target:"Gastrocnemius",note:"Straight leg, full range"},
+      {name:"Tibialis Raise",sets:3,reps:"20",restSec:45,type:"calf",target:"Tibialis anterior",note:"Heels on floor, raise toes up and down"},
+    ]
+  },
+  push2: {
+    label:"PUSH B", theme:"Shoulder dominant", color:"#C42EE8",
+    muscles:"Chest · Front Delt · Lateral Delt · Triceps (tricep emphasis)",
+    warmup:["Shoulder dislocates × 10","Wall slide × 10","Face-pull × 15","Light lateral raise × 15"],
+    exercises:[
+      {name:"DB Shoulder Press",sets:4,reps:"10",restSec:105,type:"compound",target:"Anterior + lateral delt, triceps",note:"Slight forward lean at top"},
+      {name:"Arnold Press",sets:3,reps:"10",restSec:90,type:"compound",target:"All 3 delt heads, rotator cuff",note:"Rotate palms outward as you press"},
+      {name:"Incline DB Flye",sets:3,reps:"12",restSec:60,type:"isolation",target:"Upper pec, anterior delt",note:"Wide arc, controlled stretch"},
+      {name:"Close-Grip DB Press",sets:3,reps:"12",restSec:75,type:"compound",target:"Pec major (inner), triceps",note:"DBs touching, elbows close"},
+      {name:"Lateral Raise (lean)",sets:4,reps:"15",restSec:60,type:"isolation",target:"Lateral delt (different angle)",note:"Body slightly leaned away from DB"},
+      {name:"Upright Row",sets:3,reps:"12",restSec:60,type:"isolation",target:"Lateral delt, upper traps",note:"Elbows lead up, no higher than chin"},
+      {name:"Close-Grip DB Floor Press",sets:3,reps:"12",restSec:60,type:"isolation",target:"Tricep medial + lateral head",note:"Elbows graze floor each rep"},
+      {name:"Skull Crusher (DB)",sets:3,reps:"12",restSec:60,type:"isolation",target:"Tricep long head",note:"Lower to forehead, elbows fixed"},
+    ]
+  },
+  pull2: {
+    label:"PULL B", theme:"Arm & detail dominant", color:"#E8A82E",
+    muscles:"Lats · Lower Traps · Rear Delt · Biceps · Forearms",
+    warmup:["Dead hang 20s","Scapular squeeze × 15","Band curl × 15","Wrist circles × 20"],
+    exercises:[
+      {name:"Chest-Supported DB Row",sets:4,reps:"12",restSec:90,type:"compound",target:"Lats, lower traps, rhomboids",note:"Chest on incline bench eliminates cheat"},
+      {name:"DB Meadows Row",sets:3,reps:"10",restSec:90,type:"compound",target:"Teres major, lat (lower)",note:"Staggered stance, elbow flares slightly"},
+      {name:"Prone DB Rear Delt Fly",sets:4,reps:"15",restSec:60,type:"isolation",target:"Posterior delt, infraspinatus",note:"Face down on incline bench"},
+      {name:"Lower Trap Raise (Y raise)",sets:3,reps:"15",restSec:60,type:"isolation",target:"Lower trapezius",note:"Prone, arms in Y shape, thumbs up"},
+      {name:"Close-Grip Curl",sets:4,reps:"12",restSec:60,type:"isolation",target:"Bicep long head (peak)",note:"Hands close together, supinate hard"},
+      {name:"Incline DB Curl",sets:3,reps:"12",restSec:60,type:"isolation",target:"Bicep long head stretch",note:"Seated on incline, arms hang behind body"},
+      {name:"Concentration Curl",sets:3,reps:"12",restSec:60,type:"isolation",target:"Bicep short head, peak contraction",note:"Elbow braced on inner thigh"},
+      {name:"Zottman Curl",sets:3,reps:"12",restSec:60,type:"isolation",target:"Bicep up, brachioradialis down",note:"Curl up supinated, lower pronated"},
+      {name:"Wrist Curl / Reverse Wrist Curl",sets:3,reps:"15",restSec:45,type:"isolation",target:"Forearm flexors + extensors",note:"Forearms on bench, isolate wrists"},
+    ]
+  },
+  legs2: {
+    label:"LEGS B", theme:"Hamstring, glute med & calf dominant", color:"#2EC4E8",
+    muscles:"Hamstrings · Glute Med/Min · Adductors · Soleus · Calves",
+    warmup:["Leg swing × 10 each","Hip hinge × 15","Lateral band walk × 20","Single-leg balance 30s each"],
+    exercises:[
+      {name:"DB Stiff-Leg Deadlift",sets:4,reps:"12",restSec:105,type:"compound",target:"Biceps femoris (long head), semimembranosus",note:"Minimal knee bend, maximum hip hinge"},
+      {name:"DB Single-Leg RDL",sets:3,reps:"10",restSec:90,type:"compound",target:"Hamstrings, glute max, stabilizers",note:"Hip hinge on one leg, arms hang"},
+      {name:"DB Lying Hamstring Curl",sets:3,reps:"12",restSec:60,type:"isolation",target:"Biceps femoris short head, semitendinosus",note:"DB between feet, curl to glutes"},
+      {name:"DB Lateral Lunge",sets:3,reps:"10",restSec:75,type:"compound",target:"Adductor magnus, glute medius",note:"Step wide, sit into hip, other leg straight"},
+      {name:"DB Curtsy Lunge",sets:3,reps:"10",restSec:75,type:"compound",target:"Glute medius, glute minimus",note:"Cross leg behind and to the side"},
+      {name:"DB Glute Bridge (single leg)",sets:4,reps:"12",restSec:60,type:"compound",target:"Glute max, hamstring tie-in",note:"One leg extended, drive through heel"},
+      {name:"Seated Calf Raise (DB on knees)",sets:4,reps:"20",restSec:45,type:"calf",target:"Soleus (deeper calf)",note:"Knee bent 90°, targets soleus specifically"},
+      {name:"Standing Calf Raise (single leg)",sets:3,reps:"15",restSec:45,type:"calf",target:"Gastrocnemius (detail)",note:"One leg, full range, pause at top"},
+      {name:"Tibialis Raise",sets:3,reps:"20",restSec:45,type:"calf",target:"Tibialis anterior",note:"Heels grounded, raise toes"},
+    ]
+  }
+};
+
+const dayOrder = ["push1","pull1","legs1","push2","pull2","legs2"];
+const dayLabels = ["MON","TUE","WED","THU","FRI","SAT"];
+
+// State
+let activeDay = "push1";
+let currentView = "workout";
+let restInterval = null;
+let restRemaining = 0;
+let restTotal = 0;
+
+// Load saved data
+function load() {
+  try { return JSON.parse(localStorage.getItem("ppl_data")) || {weights:{},checked:{}}; }
+  catch { return {weights:{},checked:{}}; }
+}
+function save(data) {
+  try { localStorage.setItem("ppl_data", JSON.stringify(data)); } catch {}
+}
+let state = load();
+
+// Render tabs
+function renderTabs() {
+  const el = document.getElementById("tabs");
+  el.innerHTML = dayOrder.map((key, i) => {
+    const d = program[key];
+    const isActive = activeDay === key;
+    const allDone = d.exercises.every((_,ei) => state.checked[`${key}-${ei}`]);
+    const borderColor = isActive ? d.color : allDone ? d.color+"66" : "#222";
+    const color = isActive ? "#fff" : allDone ? d.color : "#444";
+    const bg = isActive ? d.color : "transparent";
+    return `<button class="tab-btn" onclick="switchDay('${key}')"
+      style="background:${bg};color:${color};border:1px solid ${borderColor}">
+      <div class="tab-day">${dayLabels[i]}</div>
+      ${d.label}
+      ${allDone && !isActive ? '<div class="tab-done-mark">✓</div>' : ''}
+    </button>`;
+  }).join("");
+}
+
+// Render main content
+function renderContent() {
+  const day = program[activeDay];
+  const exes = day.exercises;
+  const done = exes.filter((_,i) => state.checked[`${activeDay}-${i}`]).length;
+  const pct = (done / exes.length) * 100;
+
+  let warmupHTML = `
+    <div class="warmup-list">
+      <div class="warmup-title">Complete before lifting</div>
+      ${day.warmup.map((item,i) => `
+        <div class="warmup-item">
+          <div class="warmup-num" style="background:${day.color}22;color:${day.color}">${i+1}</div>
+          <div class="warmup-text">${item}</div>
+        </div>`).join("")}
+      <button class="start-btn" style="background:${day.color}" onclick="setView('workout')">Start Workout →</button>
+    </div>`;
+
+  let exHTML = exes.map((ex,i) => {
+    const cKey = `${activeDay}-${i}`;
+    const wKey = `${activeDay}-w-${i}`;
+    const isDone = !!state.checked[cKey];
+    const wVal = state.weights[wKey] || "";
+    const dotColor = ex.type==="compound" ? "#E84B2E" : ex.type==="calf" ? "#2EC4E8" : "#404040";
+    return `
+      <div class="ex-card" id="card-${i}" style="border:1px solid ${isDone ? day.color+'55' : '#1e1e1e'};opacity:${isDone?0.5:1}">
+        <div class="ex-inner">
+          <button class="check-btn" onclick="toggleCheck(${i})"
+            style="border:2px solid ${isDone?day.color:'#333'};background:${isDone?day.color:'transparent'}">
+            ${isDone?"✓":""}
+          </button>
+          <div class="ex-body">
+            <div class="ex-name">${ex.name}</div>
+            <div class="ex-sets" style="color:${day.color}">${ex.sets} sets × ${ex.reps} reps</div>
+            <div class="ex-target">${ex.target}</div>
+            <div class="ex-note">→ ${ex.note}</div>
+            <div class="ex-bottom">
+              <span class="weight-label">WEIGHT</span>
+              <button class="weight-btn" onclick="editWeight('${wKey}', ${i})"
+                style="background:${wVal?day.color+'22':'#161616'};border:1px solid ${wVal?day.color+'66':'#252525'};color:${wVal?day.color:'#3a3a3a'};font-weight:${wVal?700:400}">
+                ${wVal ? wVal+" kg" : "+ kg"}
+              </button>
+              <div class="rest-badge">
+                <div class="rest-dot" style="background:${dotColor}"></div>
+                <span class="rest-label">${ex.restSec}s rest</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }).join("");
+
+  const weekHTML = [...dayOrder.map((key,i) => {
+    const d = program[key];
+    const isAct = activeDay===key;
+    const allDone = d.exercises.every((_,ei) => state.checked[`${key}-${ei}`]);
+    return `<div class="week-day">
+      <div class="week-day-label">${dayLabels[i]}</div>
+      <div class="week-day-sub" style="color:${isAct?d.color:allDone?d.color:'#2a2a2a'};background:${isAct?d.color+'22':allDone?d.color+'15':'transparent'}">
+        ${allDone ? "✓" : d.label}
+      </div>
+    </div>`;
+  }), `<div class="week-day"><div class="week-day-label">SUN</div><div class="week-day-sub" style="color:#2a2a2a">REST</div></div>`].join("");
+
+  document.getElementById("content").innerHTML = `
+    <div class="day-header" style="border-left:3px solid ${day.color}">
+      <div class="day-theme" style="color:${day.color}">${day.theme}</div>
+      <div class="day-muscles">${day.muscles}</div>
+    </div>
+
+    <div class="view-toggle">
+      <button class="view-btn" onclick="setView('warmup')"
+        style="border:1px solid ${currentView==='warmup'?day.color:'#222'};background:${currentView==='warmup'?day.color+'22':'transparent'};color:${currentView==='warmup'?day.color:'#555'}">
+        Warm-up
+      </button>
+      <button class="view-btn" onclick="setView('workout')"
+        style="border:1px solid ${currentView==='workout'?day.color:'#222'};background:${currentView==='workout'?day.color+'22':'transparent'};color:${currentView==='workout'?day.color:'#555'}">
+        Workout
+      </button>
+    </div>
+
+    ${currentView === "warmup" ? warmupHTML : `
+      <div class="progress-wrap">
+        <div class="progress-top">
+          <span>Progress</span>
+          <span style="color:${done===exes.length?day.color:'#555'}">${done} / ${exes.length}</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar" style="width:${pct}%;background:${day.color}"></div>
+        </div>
+      </div>
+
+      <div class="ex-list">${exHTML}</div>
+
+      <div class="panel">
+        <div class="panel-title">Rest Guide</div>
+        <div class="rest-guide">
+          <div class="rg-item"><div class="rg-dot" style="background:#E84B2E"></div><div><div class="rg-time">90–120s</div><div class="rg-type">Compound</div></div></div>
+          <div class="rg-item"><div class="rg-dot" style="background:#404040"></div><div><div class="rg-time">60s</div><div class="rg-type">Isolation</div></div></div>
+          <div class="rg-item"><div class="rg-dot" style="background:#2EC4E8"></div><div><div class="rg-time">45s</div><div class="rg-type">Calves</div></div></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Week</div>
+        <div class="week-grid">${weekHTML}</div>
+      </div>
+    `}
+  `;
+}
+
+function render() { renderTabs(); renderContent(); }
+
+function switchDay(key) { activeDay = key; currentView = "workout"; render(); window.scrollTo(0,0); }
+function setView(v) { currentView = v; renderContent(); }
+
+function toggleCheck(i) {
+  const cKey = `${activeDay}-${i}`;
+  const wasDone = !!state.checked[cKey];
+  state.checked[cKey] = !wasDone;
+  save(state);
+  if (!wasDone) startRest(program[activeDay].exercises[i]);
+  render();
+}
+
+function editWeight(wKey, i) {
+  const current = state.weights[wKey] || "";
+  const val = prompt(`Weight for ${program[activeDay].exercises[i].name} (kg):`, current);
+  if (val !== null) {
+    state.weights[wKey] = val.trim();
+    save(state);
+    render();
+  }
+}
+
+// Rest timer
+function startRest(ex) {
+  clearInterval(restInterval);
+  restRemaining = ex.restSec;
+  restTotal = ex.restSec;
+  document.getElementById("rest-exname").textContent = ex.name;
+  document.getElementById("rest-overlay").classList.add("active");
+  const arc = document.getElementById("ring-arc");
+  arc.style.stroke = program[activeDay].color;
+  updateRing();
+  restInterval = setInterval(() => {
+    restRemaining--;
+    if (restRemaining <= 0) { skipRest(); return; }
+    updateRing();
+  }, 1000);
+}
+
+function updateRing() {
+  document.getElementById("rest-num").textContent = restRemaining;
+  const offset = CIRCUM * (1 - restRemaining / restTotal);
+  document.getElementById("ring-arc").style.strokeDashoffset = offset;
+}
+
+function skipRest() {
+  clearInterval(restInterval);
+  document.getElementById("rest-overlay").classList.remove("active");
+}
+
+// Init
+render();
+</script>
+</body>
+</html>
